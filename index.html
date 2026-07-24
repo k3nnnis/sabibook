@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SABIBOOK — Snap am. Sabi am.</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #16302A;
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 24px;
+  }
+  .header {
+    width: 100%; max-width: 480px; display: flex; justify-content: space-between;
+    align-items: center; padding: 18px 20px 10px; box-sizing: border-box;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 8px; background: #E8B33D; color: #16302A;
+    display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive;
+    font-weight: 700; font-size: 22px;
+  }
+  .brand-name { color: #FBF8F0; font-weight: 700; font-size: 17px; line-height: 1.1; }
+  .brand-tag { color: #9DB8AC; font-size: 11.5px; font-family: 'Caveat', cursive; font-weight: 500; }
+  .premium-pill {
+    display: flex; align-items: center; gap: 5px; background: rgba(232,179,61,0.15); color: #E8B33D;
+    border: 1px solid rgba(232,179,61,0.4); border-radius: 999px; padding: 6px 12px; font-size: 12.5px;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 500; cursor: pointer;
+  }
+  .premium-badge { display: flex; align-items: center; gap: 5px; color: #E8B33D; font-size: 12.5px; font-weight: 700; }
+  .page-tab {
+    align-self: flex-start; margin-left: max(20px, calc(50% - 240px + 20px)); background: #E8B33D; color: #16302A;
+    font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 8px 8px 0 0; letter-spacing: 0.3px;
+  }
+  .page {
+    width: 100%; max-width: 480px; background: #FBF8F0; border-radius: 4px 12px 12px 12px; position: relative;
+    box-sizing: border-box; min-height: 480px; box-shadow: 0 12px 30px rgba(0,0,0,0.25); overflow: hidden;
+  }
+  .margin-line { position: absolute; top: 0; bottom: 0; left: 34px; width: 1.5px; background: #D9857F; opacity: 0.55; }
+  .page-content {
+    padding: 22px 20px 26px 50px;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 27px, #C9D4E4 28px);
+  }
+  .section-label { font-family: 'Caveat', cursive; font-weight: 700; font-size: 26px; color: #16302A; margin: 4px 0 8px; }
+  .cam-box {
+    height: 200px; border: 2px dashed #16302A; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; color: #16302A; background-size: cover; background-position: center;
+    margin-bottom: 14px; position: relative; cursor: pointer;
+  }
+  .cam-empty { display: flex; flex-direction: column; align-items: center; opacity: 0.75; }
+  .cam-empty svg { margin-bottom: 8px; }
+  .cam-loading {
+    position: absolute; inset: 0; background: rgba(251,248,240,0.85); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #16302A; border-radius: 8px;
+  }
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .btn-primary {
+    width: 100%; background: #16302A; color: #FBF8F0; border: none; border-radius: 10px; padding: 13px 0;
+    font-size: 15px; font-weight: 500; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center;
+    justify-content: center; gap: 8px; cursor: pointer; margin-bottom: 22px;
+  }
+  .btn-accent {
+    width: 100%; background: #E8B33D; color: #16302A; border: none; border-radius: 10px; padding: 13px 0;
+    font-size: 15px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center;
+    justify-content: center; gap: 8px; cursor: pointer;
+  }
+  .error-box { display: flex; align-items: center; gap: 6px; color: #8A2E2E; font-size: 13px; margin: -10px 0 20px; }
+  .answer-box { min-height: 120px; margin-bottom: 18px; }
+  .answer-empty { color: #8A9A92; font-size: 14px; font-style: italic; }
+  .question-summary { font-style: italic; color: #5B6B63; font-size: 13.5px; margin-bottom: 12px; }
+  .steps-list { margin: 0 0 14px 0; padding-left: 20px; }
+  .steps-list li { font-family: 'Caveat', cursive; font-size: 20px; color: #B3372E; line-height: 1.35; margin-bottom: 4px; }
+  .final-answer {
+    display: inline-flex; align-items: center; gap: 6px; border: 2.5px solid #B3372E; border-radius: 999px;
+    color: #B3372E; font-family: 'Caveat', cursive; font-size: 22px; font-weight: 700; padding: 6px 18px;
+  }
+  .footer-note { color: #8FAA9C; font-size: 11.5px; margin-top: 14px; text-align: center; max-width: 400px; padding: 0 20px; }
+  .ad-wrap { padding: 36px 24px; display: flex; justify-content: center; }
+  .bell-card { background: #FFFFFF; border: 1px solid #E5DFC8; border-radius: 14px; padding: 26px 22px; text-align: center; max-width: 340px; width: 100%; }
+  .bell-title { font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; color: #16302A; }
+  .bell-sub { font-size: 13px; color: #5B6B63; margin: 4px 0 18px; }
+  .ad-slot { background: #F1EEE2; border: 1px dashed #B7AF95; border-radius: 10px; padding: 26px 10px; margin-bottom: 20px; color: #7A7461; }
+  .hidden { display: none !important; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(22,48,42,0.55); display: flex; align-items: center;
+    justify-content: center; padding: 20px; z-index: 10;
+  }
+  .ticket-card { background: #FBF8F0; border-radius: 14px; padding: 28px 24px; max-width: 320px; width: 100%; text-align: center; position: relative; color: #16302A; }
+  .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: #16302A; cursor: pointer; }
+  .ticket-title { font-size: 19px; font-weight: 700; margin-top: 10px; }
+  .ticket-price { font-family: 'Caveat', cursive; font-size: 30px; font-weight: 700; color: #B3372E; margin-top: 4px; }
+  .ticket-desc { font-size: 13px; color: #5B6B63; margin: 8px 0 16px; }
+  .email-input {
+    width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid #C9D4E4; font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; margin-bottom: 12px; box-sizing: border-box;
+  }
+  .ticket-footnote { font-size: 11px; color: #8FAA9C; margin-top: 12px; }
+  .banner { max-width: 480px; width: 100%; background: #E8B33D; color: #16302A; font-size: 13px; padding: 10px 16px; border-radius: 8px; margin: 0 0 10px; box-sizing: border-box; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-name">SABIBOOK</div>
+        <div class="brand-tag">Snap am. Sabi am.</div>
+      </div>
+    </div>
+    <button id="premiumPill" class="premium-pill">👑 Go ad-free</button>
+    <div id="premiumBadge" class="premium-badge hidden">👑 Premium</div>
+  </div>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <div class="page-tab" id="pageTab">Question 1</div>
+
+  <div class="page">
+    <div class="margin-line"></div>
+
+    <div id="pageContent" class="page-content">
+      <div class="section-label">Cam</div>
+      <div id="camBox" class="cam-box">
+        <div id="camEmpty" class="cam-empty">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <div style="font-size:14px;">Tap to snap the question</div>
+        </div>
+        <div id="camLoading" class="cam-loading hidden">
+          <svg class="spin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"/></svg>
+          <div style="font-size:13px; margin-top:8px;">Sabi is thinking...</div>
+        </div>
+      </div>
+
+      <input id="fileInput" type="file" accept="image/*" capture="environment" class="hidden" />
+
+      <button id="snapButton" class="btn-primary">📷 Snap Am</button>
+
+      <div id="errorBox" class="error-box hidden"></div>
+
+      <div class="section-label">Answer</div>
+      <div id="answerBox" class="answer-box">
+        <div id="answerEmpty" class="answer-empty">Your answer will show here once you snap a question.</div>
+        <div id="answerContent" class="hidden"></div>
+      </div>
+
+      <button id="resetButton" class="btn-accent hidden">🔄 Reset for next question</button>
+    </div>
+
+    <div id="adBreak" class="ad-wrap hidden">
+      <div class="bell-card">
+        <div class="bell-title">🔔 Free Period</div>
+        <div class="bell-sub">A quick word from a sponsor before your next question.</div>
+        <div class="ad-slot">
+          <div style="font-size:12px; opacity:0.6;">Sponsored</div>
+          <div style="font-size:15px; margin-top:6px;">Ad space</div>
+        </div>
+        <button id="continueButton" class="btn-primary" style="opacity:0.5;" disabled>Continue in 4s</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">No data is saved. Reset clears everything for the next question.</div>
+
+  <div id="premiumModal" class="modal-overlay hidden">
+    <div class="ticket-card">
+      <button id="modalClose" class="modal-close">✕</button>
+      <div style="font-size:26px;">👑</div>
+      <div class="ticket-title">Go ad-free</div>
+      <div class="ticket-price">₦500 / month</div>
+      <div class="ticket-desc">No ad breaks between questions. Cancel anytime.</div>
+      <input id="premiumEmail" class="email-input" type="email" placeholder="Email for your receipt" />
+      <button id="payButton" class="btn-accent">Pay with Paystack</button>
+      <div class="ticket-footnote">You'll be taken to Paystack's secure checkout.</div>
+    </div>
+  </div>
+
+<script>
+  const PREMIUM_STORAGE_KEY = 'sabibook_premium';
+
+  const state = {
+    phase: 'idle', // idle | loading | answered | ad | error
+    capturedImageDataUrl: null,
+    capturedBase64: null,
+    capturedMediaType: null,
+    result: null,
+    questionCount: 0,
+    isPremium: false,
+  };
+
+  const el = (id) => document.getElementById(id);
+
+  function shouldShowAd(count) {
+    const pos = count % 5 === 0 ? 5 : count % 5;
+    return pos === 3 || pos === 5;
+  }
+
+  function showBanner(text) {
+    const b = el('banner');
+    b.textContent = text;
+    b.classList.remove('hidden');
+    setTimeout(() => b.classList.add('hidden'), 5000);
+  }
+
+  function loadPremiumFromStorage() {
+    try {
+      const raw = localStorage.getItem(PREMIUM_STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.expiresAt && data.expiresAt > Date.now()) {
+        state.isPremium = true;
+      } else {
+        localStorage.removeItem(PREMIUM_STORAGE_KEY);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function checkUrlForPaymentResult() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('premium_token');
+    const payment = params.get('payment');
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token));
+        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(decoded));
+        state.isPremium = true;
+        showBanner('Premium activated — thank you!');
+      } catch (e) { /* ignore malformed token */ }
+    } else if (payment === 'failed') {
+      showBanner('Payment did not go through. You can try again anytime.');
+    } else if (payment === 'error') {
+      showBanner('Something went wrong confirming payment. Contact support if you were charged.');
+    }
+    if (token || payment) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  function render() {
+    el('pageTab').textContent = 'Question ' + (state.questionCount + (state.phase === 'idle' || state.phase === 'loading' ? 1 : 0));
+    el('premiumPill').classList.toggle('hidden', state.isPremium);
+    el('premiumBadge').classList.toggle('hidden', !state.isPremium);
+
+    el('pageContent').classList.toggle('hidden', state.phase === 'ad');
+    el('adBreak').classList.toggle('hidden', state.phase !== 'ad');
+
+    el('camEmpty').classList.toggle('hidden', !!state.capturedImageDataUrl || state.phase === 'loading');
+    el('camLoading').classList.toggle('hidden', state.phase !== 'loading');
+    el('camBox').style.backgroundImage = state.capturedImageDataUrl ? `url(${state.capturedImageDataUrl})` : 'none';
+
+    el('snapButton').classList.toggle('hidden', !(state.phase === 'idle' || state.phase === 'error'));
+    el('errorBox').classList.toggle('hidden', state.phase !== 'error');
+
+    el('resetButton').classList.toggle('hidden', state.phase !== 'answered');
+
+    if (state.phase === 'answered' && state.result) {
+      el('answerEmpty').classList.add('hidden');
+      el('answerContent').classList.remove('hidden');
+      renderAnswer(state.result);
+    } else {
+      el('answerContent').classList.add('hidden');
+      el('answerEmpty').classList.remove('hidden');
+      el('answerEmpty').textContent = state.phase === 'loading' ? 'Working it out...' : 'Your answer will show here once you snap a question.';
+    }
+  }
+
+  function renderAnswer(result) {
+    const isMath = result.subject_type === 'math';
+    let html = '';
+    if (result.question_summary) {
+      html += `<div class="question-summary">&ldquo;${escapeHtml(result.question_summary)}&rdquo;</div>`;
+    }
+    if (isMath && Array.isArray(result.steps) && result.steps.length > 0) {
+      html += '<ol class="steps-list">' + result.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('') + '</ol>';
+    }
+    html += `<div><span class="final-answer">✓ ${escapeHtml(result.answer || '')}</span></div>`;
+    el('answerContent').innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function openCamera() { el('fileInput').click(); }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('Could not read image'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFile(file) {
+    state.phase = 'loading';
+    render();
+
+    const previewReader = new FileReader();
+    previewReader.onload = () => { state.capturedImageDataUrl = previewReader.result; render(); };
+    previewReader.readAsDataURL(file);
+
+    try {
+      const base64Data = await fileToBase64(file);
+      const mediaType = file.type || 'image/jpeg';
+
+      const res = await fetch('/api/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64Data, mediaType }),
+      });
+      if (!res.ok) throw new Error('Request failed');
+      const parsed = await res.json();
+      if (parsed.error) throw new Error(parsed.error);
+
+      state.result = parsed;
+      state.questionCount += 1;
+      state.phase = 'answered';
+    } catch (err) {
+      el('errorBox').textContent = "Couldn't read that one. Try snapping the question again, clearer if you can.";
+      state.phase = 'error';
+    }
+    render();
+  }
+
+  function handleReset() {
+    const willShowAd = !state.isPremium && shouldShowAd(state.questionCount);
+    state.capturedImageDataUrl = null;
+    state.capturedBase64 = null;
+    state.result = null;
+    if (willShowAd) {
+      startAdBreak();
+    } else {
+      state.phase = 'idle';
+      render();
+    }
+  }
+
+  function startAdBreak() {
+    state.phase = 'ad';
+    render();
+    let seconds = 4;
+    const btn = el('continueButton');
+    btn.textContent = `Continue in ${seconds}s`;
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    const interval = setInterval(() => {
+      seconds -= 1;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        btn.textContent = 'Continue';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      } else {
+        btn.textContent = `Continue in ${seconds}s`;
+      }
+    }, 1000);
+  }
+
+  async function handlePay() {
+    const email = el('premiumEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      el('premiumEmail').style.borderColor = '#B3372E';
+      return;
+    }
+    const payBtn = el('payButton');
+    payBtn.textContent = 'Starting checkout...';
+    payBtn.disabled = true;
+    try {
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        throw new Error(data.error || 'Could not start payment');
+      }
+    } catch (err) {
+      payBtn.textContent = 'Pay with Paystack';
+      payBtn.disabled = false;
+      showBanner('Could not start payment. Please try again.');
+    }
+  }
+
+  // Wire up events
+  el('camBox').addEventListener('click', () => {
+    if (state.phase === 'idle' || state.phase === 'error') openCamera();
+  });
+  el('snapButton').addEventListener('click', openCamera);
+  el('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) handleFile(file);
+    e.target.value = '';
+  });
+  el('resetButton').addEventListener('click', handleReset);
+  el('continueButton').addEventListener('click', () => {
+    if (!el('continueButton').disabled) {
+      state.phase = 'idle';
+      render();
+    }
+  });
+  el('premiumPill').addEventListener('click', () => el('premiumModal').classList.remove('hidden'));
+  el('modalClose').addEventListener('click', () => el('premiumModal').classList.add('hidden'));
+  el('payButton').addEventListener('click', handlePay);
+
+  // Init
+  loadPremiumFromStorage();
+  checkUrlForPaymentResult();
+  render();
+</script>
+</body>
+  </html>
+  
