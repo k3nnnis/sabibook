@@ -282,6 +282,18 @@
   </div>
 
 <script>
+  window.addEventListener('error', function (e) {
+    try {
+      var b = document.getElementById('banner');
+      if (b) {
+        b.textContent = '⚠️ Error: ' + (e.message || 'unknown') + ' (line ' + e.lineno + ')';
+        b.classList.remove('hidden');
+        b.style.background = '#B3372E';
+        b.style.color = '#FBF8F0';
+      }
+    } catch (_) { /* nothing more we can do */ }
+  });
+
   const PREMIUM_STORAGE_KEY = 'sabibook_premium';
   const SAVED_ANSWERS_KEY = 'sabibook_saved_answers';
   const FREE_CYCLE_KEY = 'sabibook_free_cycle';
@@ -373,14 +385,4 @@
     persistSavedAnswers();
   }
 
-  function addSavedAnswer(result, thumbnail) {
-    const entry = {
-      id: 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      timestamp: Date.now(),
-      subject_type: result.subject_type,
-      question_summary: result.question_summary || '',
-      steps: Array.isArray(result.steps) ? result.steps : [],
-      answer: result.answer || '',
-      thumbnail: thumbnail || null,
-    };
-    state.savedAnswers.unshift
+  function addSavedAnswer(result, thumbnail
