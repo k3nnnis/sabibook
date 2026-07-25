@@ -1,4 +1,4 @@
-const PREMIUM_AMOUNT_KOBO = 50000; // ₦500
+const PREMIUM_AMOUNT_KOBO = 75000; // ₦750
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -44,3 +44,4 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Server error starting payment' });
   }
 };
+        
