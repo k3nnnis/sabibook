@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SABIBOOK — Snap am. Sabi am.</title>
+<title>SABIBOOK — Free AI Homework & Assignment Helper for Nigerian Students</title>
+<meta name="description" content="Stuck on homework, assignments, or exam prep? Snap a photo of any question and get an instant, easy-to-understand answer from SABIBOOK — free AI study help for WAEC, JAMB, NECO, and school subjects." />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6519503849516056"
      crossorigin="anonymous"></script>
 <style>
@@ -30,7 +31,7 @@
     display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive;
     font-weight: 700; font-size: 22px;
   }
-  .brand-name { color: #FBF8F0; font-weight: 700; font-size: 17px; line-height: 1.1; }
+  .brand-name { color: #FBF8F0; font-weight: 700; font-size: 17px; line-height: 1.1; margin: 0; }
   .brand-tag { color: #9DB8AC; font-size: 11.5px; font-family: 'Caveat', cursive; font-weight: 500; }
   .premium-pill {
     display: flex; align-items: center; gap: 5px; background: rgba(232,179,61,0.15); color: #E8B33D;
@@ -93,6 +94,18 @@
     color: #5B5340; font-size: 14px; line-height: 1.4;
   }
   .footer-note { color: #8FAA9C; font-size: 11.5px; margin-top: 14px; text-align: center; max-width: 400px; padding: 0 20px; }
+  .info-section {
+    width: 100%; max-width: 480px; box-sizing: border-box; padding: 28px 20px 10px; color: #DCE7DF;
+  }
+  .info-section h2 {
+    font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; color: #E8B33D; margin: 0 0 12px;
+  }
+  .info-section p { font-size: 14px; line-height: 1.6; margin: 0 0 14px; color: #C7D6CC; }
+  .info-section ol { padding-left: 20px; margin: 0 0 14px; }
+  .info-section ol li { font-size: 14px; line-height: 1.6; margin-bottom: 6px; color: #C7D6CC; }
+  .faq-item { margin-bottom: 16px; }
+  .faq-item h3 { font-size: 15px; font-weight: 700; color: #FBF8F0; margin: 0 0 4px; }
+  .faq-item p { margin: 0; }
   .ad-wrap { padding: 36px 24px; display: flex; justify-content: center; }
   .bell-card { background: #FFFFFF; border: 1px solid #E5DFC8; border-radius: 14px; padding: 26px 22px; text-align: center; max-width: 340px; width: 100%; }
   .bell-title { font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; color: #16302A; }
@@ -122,7 +135,7 @@
     <div class="brand">
       <div class="brand-mark">S</div>
       <div>
-        <div class="brand-name">SABIBOOK</div>
+        <h1 class="brand-name">SABIBOOK</h1>
         <div class="brand-tag">Snap am. Sabi am.</div>
       </div>
     </div>
@@ -183,6 +196,36 @@
   </div>
 
   <div class="footer-note">No data is saved. Reset clears everything for the next question.</div>
+
+  <div class="info-section">
+    <h2>How SABIBOOK works</h2>
+    <p>SABIBOOK is a free AI homework helper for Nigerian students. Snap a photo of any homework, assignment, or exam prep question, and get an instant answer you can actually understand.</p>
+    <ol>
+      <li>Snap a photo of your question, or upload a screenshot if you already have one saved.</li>
+      <li>SABIBOOK's AI reads the question and works out the subject.</li>
+      <li>For maths, physics, chemistry, and other calculation questions, it shows the full step-by-step working, not just the final answer, so you understand how to get there yourself.</li>
+      <li>For every other subject, you get a clear, correct answer right away.</li>
+      <li>Tap Reset and snap your next question. Nothing is saved between questions.</li>
+    </ol>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq-item">
+      <h3>Is SABIBOOK free?</h3>
+      <p>Yes. You can solve questions for free, with a short ad break every few questions. A low-cost monthly premium plan removes the ads completely if you'd rather skip them.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What subjects can SABIBOOK help with?</h3>
+      <p>Any subject you're studying, including mathematics, physics, chemistry, biology, English, government, economics, literature, and geography. It's built for everyday homework help, solving assignment questions, and WAEC, NECO, and JAMB exam prep revision.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does SABIBOOK save my questions or photos?</h3>
+      <p>No. Nothing is stored. Once you get your answer and tap Reset, everything is cleared for the next question.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can I use SABIBOOK on my phone?</h3>
+      <p>Yes, SABIBOOK works entirely in your phone's browser, with no app download needed.</p>
+    </div>
+  </div>
 
   <div id="premiumModal" class="modal-overlay hidden">
     <div class="ticket-card">
@@ -380,74 +423,4 @@
       if (seconds <= 0) {
         clearInterval(interval);
         btn.textContent = 'Continue';
-        btn.disabled = false;
-        btn.style.opacity = '1';
-      } else {
-        btn.textContent = `Continue in ${seconds}s`;
-      }
-    }, 1000);
-  }
-
-  async function handlePay() {
-    const email = el('premiumEmail').value.trim();
-    if (!email || !email.includes('@')) {
-      el('premiumEmail').style.borderColor = '#B3372E';
-      return;
-    }
-    const payBtn = el('payButton');
-    payBtn.textContent = 'Starting checkout...';
-    payBtn.disabled = true;
-    try {
-      const res = await fetch('/api/paystack/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (data.authorization_url) {
-        window.location.href = data.authorization_url;
-      } else {
-        throw new Error(data.error || 'Could not start payment');
-      }
-    } catch (err) {
-      payBtn.textContent = 'Pay with Paystack';
-      payBtn.disabled = false;
-      showBanner('Could not start payment. Please try again.');
-    }
-  }
-
-  // Wire up events
-  el('camBox').addEventListener('click', () => {
-    if (state.phase === 'idle' || state.phase === 'error') openCamera();
-  });
-  el('snapButton').addEventListener('click', openCamera);
-  el('uploadButton').addEventListener('click', openUpload);
-  el('fileInput').addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) handleFile(file);
-    e.target.value = '';
-  });
-  el('fileInputUpload').addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) handleFile(file);
-    e.target.value = '';
-  });
-  el('resetButton').addEventListener('click', handleReset);
-  el('continueButton').addEventListener('click', () => {
-    if (!el('continueButton').disabled) {
-      state.phase = 'idle';
-      render();
-    }
-  });
-  el('premiumPill').addEventListener('click', () => el('premiumModal').classList.remove('hidden'));
-  el('modalClose').addEventListener('click', () => el('premiumModal').classList.add('hidden'));
-  el('payButton').addEventListener('click', handlePay);
-
-  // Init
-  loadPremiumFromStorage();
-  checkUrlForPaymentResult();
-  render();
-</script>
-</body>
-                                         </html>
-     
+        b
