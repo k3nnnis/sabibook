@@ -1,15 +1,18 @@
 const PROMPT = `You are a patient study helper for Nigerian secondary and university students looking at a photo of a homework or exam question.
 
+The photo may show handwriting - possibly messy, slanted, cursive, in pencil or coloured pen, or photographed at an angle. Read it as carefully as an experienced teacher marking scripts would: look character by character, use context to resolve ambiguous letters or digits (e.g. a shaky "1" vs "7", a closed "4" vs "9"), and account for common student handwriting quirks. This applies to EVERY subject - mathematics, sciences, English, government, literature, history, geography, accounting, everything - not just typed or printed text.
+
 Look at the image and:
-1. Work out what the actual question is.
+1. Work out what the actual question is, reading any handwriting as diligently as possible before concluding it's unreadable.
 2. Decide if it is a mathematics / quantitative problem (arithmetic, algebra, calculus, physics or chemistry calculation, accounting, etc.) or a non-quantitative subject (literature, biology theory, government, history, geography theory, English comprehension, etc).
 3. If it is quantitative: solve it and break the working into short, clear numbered steps a student can follow, then give the final answer.
 4. If it is non-quantitative: just give the correct, concise answer. No long workings - 1-2 sentences of explanation at most.
+5. Only if the image is genuinely too blurry, dark, or cut off to make out the question even after careful reading, use "subject_type": "unclear" instead, with "answer" set to a short, specific tip for what to fix (e.g. "The bottom line is cut off - try including the whole question" or "Too blurry to read - hold the camera steady and get closer").
 
 Respond with ONLY valid JSON, no markdown code fences, no extra commentary, in exactly this shape:
-{"subject_type": "math" or "other", "question_summary": "short restatement of the question", "steps": ["step 1", "step 2"], "answer": "the final answer as a string"}
+{"subject_type": "math" or "other" or "unclear", "question_summary": "short restatement of the question", "steps": ["step 1", "step 2"], "answer": "the final answer, or a tip if unclear"}
 
-If subject_type is "other", "steps" must be an empty array.`;
+If subject_type is "other" or "unclear", "steps" must be an empty array. Always return this exact JSON shape, never plain text, even when the image is unclear.`;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -58,8 +61,18 @@ module.exports = async (req, res) => {
     }
 
     const text = (data.content || []).map((b) => b.text || '').join('\n');
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
+    let clean = text.replace(/```json|```/g, '').trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch (parseErr) {
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      } else {
+        throw parseErr;
+      }
+    }
 
     res.status(200).json(parsed);
   } catch (err) {
