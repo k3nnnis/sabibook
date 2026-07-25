@@ -39,6 +39,27 @@
     font-family: 'Space Grotesk', sans-serif; font-weight: 500; cursor: pointer;
   }
   .premium-badge { display: flex; align-items: center; gap: 5px; color: #E8B33D; font-size: 12.5px; font-weight: 700; }
+  .header-right { display: flex; align-items: center; gap: 10px; position: relative; }
+  .notif-bell { position: relative; background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px; }
+  .notif-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: #B3372E; }
+  .notif-panel {
+    position: absolute; top: 32px; right: 0; background: #FBF8F0; color: #16302A; border-radius: 10px;
+    padding: 12px 14px; width: 220px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 20;
+  }
+  .notif-item { margin-bottom: 8px; }
+  .notif-item:last-child { margin-bottom: 0; }
+  .notif-empty { color: #8A9A92; font-style: italic; }
+  .saved-section { width: 100%; max-width: 480px; box-sizing: border-box; padding: 18px 20px 0; }
+  .saved-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .saved-empty { color: #9DB8AC; font-size: 13px; font-style: italic; }
+  .saved-item {
+    display: flex; align-items: center; gap: 10px; background: #1E4038; border-radius: 10px; padding: 8px 10px; cursor: pointer;
+  }
+  .saved-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: #0F231E; }
+  .saved-item-body { flex: 1; min-width: 0; }
+  .saved-summary { color: #FBF8F0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-answer-preview { color: #9DB8AC; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-delete { background: none; border: none; color: #D9857F; font-size: 15px; padding: 4px 6px; cursor: pointer; flex-shrink: 0; }
   .page-tab {
     align-self: flex-start; margin-left: max(20px, calc(50% - 240px + 20px)); background: #E8B33D; color: #16302A;
     font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 8px 8px 0 0; letter-spacing: 0.3px;
@@ -139,8 +160,12 @@
         <div class="brand-tag">Snap am. Sabi am.</div>
       </div>
     </div>
-    <button id="premiumPill" class="premium-pill">👑 Go ad-free</button>
-    <div id="premiumBadge" class="premium-badge hidden">👑 Premium</div>
+    <div class="header-right">
+      <button id="notifBell" class="notif-bell hidden">🔔<span id="notifDot" class="notif-dot hidden"></span></button>
+      <div id="notifPanel" class="notif-panel hidden"></div>
+      <button id="premiumPill" class="premium-pill">👑 Go ad-free</button>
+      <div id="premiumBadge" class="premium-badge hidden">👑 Premium</div>
+    </div>
   </div>
 
   <div id="banner" class="banner hidden"></div>
@@ -195,7 +220,12 @@
     </div>
   </div>
 
-  <div class="footer-note">No data is saved. Reset clears everything for the next question.</div>
+  <div class="footer-note">Answers are saved only on this device, never on our servers. Free: your last 5, cleared daily at 1am. Pro: your last 10, kept 5 days, yours to manage.</div>
+
+  <div class="saved-section">
+    <div class="section-label" style="color:#FBF8F0;">Saved Answers</div>
+    <div id="savedList" class="saved-list"></div>
+  </div>
 
   <div class="info-section">
     <h2>How SABIBOOK works</h2>
@@ -205,13 +235,13 @@
       <li>SABIBOOK's AI reads the question and works out the subject.</li>
       <li>For maths, physics, chemistry, and other calculation questions, it shows the full step-by-step working, not just the final answer, so you understand how to get there yourself.</li>
       <li>For every other subject, you get a clear, correct answer right away.</li>
-      <li>Tap Reset and snap your next question. Nothing is saved between questions.</li>
+      <li>Tap Reset and snap your next question. Your recent answers are kept in the Saved Answers list below, so you can check them again later.</li>
     </ol>
 
     <h2>Frequently asked questions</h2>
     <div class="faq-item">
       <h3>Is SABIBOOK free?</h3>
-      <p>Yes. You can solve questions for free, with a short ad break every few questions. A low-cost monthly premium plan removes the ads completely if you'd rather skip them.</p>
+      <p>Yes. You can solve questions for free, with a short ad break every few questions. Going Pro for ₦750/month removes the ads completely and lets you save your last 10 answers for 5 days, with full control over what you keep.</p>
     </div>
     <div class="faq-item">
       <h3>What subjects can SABIBOOK help with?</h3>
@@ -219,7 +249,7 @@
     </div>
     <div class="faq-item">
       <h3>Does SABIBOOK save my questions or photos?</h3>
-      <p>No. Nothing is stored. Once you get your answer and tap Reset, everything is cleared for the next question.</p>
+      <p>Your recent answers are saved only on your own device, never on our servers. Free accounts keep your last 5 answers, cleared automatically every day at 1am. Pro keeps your last 10 for 5 days, and lets you delete any of them yourself.</p>
     </div>
     <div class="faq-item">
       <h3>Can I use SABIBOOK on my phone?</h3>
@@ -231,17 +261,38 @@
     <div class="ticket-card">
       <button id="modalClose" class="modal-close">✕</button>
       <div style="font-size:26px;">👑</div>
-      <div class="ticket-title">Go ad-free</div>
-      <div class="ticket-price">₦500 / month</div>
-      <div class="ticket-desc">No ad breaks between questions. Cancel anytime.</div>
+      <div class="ticket-title">Go Pro</div>
+      <div class="ticket-price">₦750 / month</div>
+      <div class="ticket-desc">No ad breaks. Save your last 10 answers for 5 days, and choose what to keep or delete yourself. Cancel anytime.</div>
       <input id="premiumEmail" class="email-input" type="email" placeholder="Email for your receipt" />
       <button id="payButton" class="btn-accent">Pay with Paystack</button>
       <div class="ticket-footnote">You'll be taken to Paystack's secure checkout.</div>
     </div>
   </div>
 
+  <div id="upsellModal" class="modal-overlay hidden">
+    <div class="ticket-card">
+      <button id="upsellClose" class="modal-close">✕</button>
+      <div style="font-size:26px;">👑</div>
+      <div class="ticket-title">Enjoying SABIBOOK?</div>
+      <div class="ticket-desc">Go Pro for ₦750/month — no ads, plus save and manage your last 10 answers for 5 days.</div>
+      <button id="upsellGoPro" class="btn-accent" style="margin-bottom:10px;">Go Pro — ₦750/mo</button>
+      <button id="upsellDismiss" class="btn-secondary-look" style="width:100%; padding:11px 0; border-radius:10px; background:transparent; font-family:'Space Grotesk',sans-serif; font-size:14px; cursor:pointer;">Maybe later</button>
+    </div>
+  </div>
+
 <script>
   const PREMIUM_STORAGE_KEY = 'sabibook_premium';
+  const SAVED_ANSWERS_KEY = 'sabibook_saved_answers';
+  const FREE_CYCLE_KEY = 'sabibook_free_cycle';
+  const FREE_MAX_SAVED = 5;
+  const PRO_MAX_SAVED = 10;
+  const PRO_RETENTION_MS = 5 * 24 * 60 * 60 * 1000;
+  const PRO_WARNING_MS = 24 * 60 * 60 * 1000;
+  const API_MAX_DIM = 1280;
+  const API_QUALITY = 0.75;
+  const THUMB_MAX_DIM = 320;
+  const THUMB_QUALITY = 0.6;
 
   const state = {
     phase: 'idle', // idle | loading | answered | ad | error
@@ -251,6 +302,9 @@
     result: null,
     questionCount: 0,
     isPremium: false,
+    savedAnswers: [],
+    viewingSaved: false,
+    pendingUpsellAfterAd: false,
   };
 
   const el = (id) => document.getElementById(id);
@@ -258,6 +312,11 @@
   function shouldShowAd(count) {
     const pos = count % 5 === 0 ? 5 : count % 5;
     return pos === 3 || pos === 5;
+  }
+
+  function shouldShowProUpsell(count) {
+    if (count < 6) return false;
+    return (count - 6) % 10 === 0;
   }
 
   function showBanner(text) {
@@ -280,147 +339,48 @@
     } catch (e) { /* ignore */ }
   }
 
-  function checkUrlForPaymentResult() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('premium_token');
-    const payment = params.get('payment');
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token));
-        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(decoded));
-        state.isPremium = true;
-        showBanner('Premium activated — thank you!');
-      } catch (e) { /* ignore malformed token */ }
-    } else if (payment === 'failed') {
-      showBanner('Payment did not go through. You can try again anytime.');
-    } else if (payment === 'error') {
-      showBanner('Something went wrong confirming payment. Contact support if you were charged.');
-    }
-    if (token || payment) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+  function getCycleKey(timestamp) {
+    const d = new Date(timestamp);
+    if (d.getHours() < 1) d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
   }
 
-  function render() {
-    el('pageTab').textContent = 'Question ' + (state.questionCount + (state.phase === 'idle' || state.phase === 'loading' ? 1 : 0));
-    el('premiumPill').classList.toggle('hidden', state.isPremium);
-    el('premiumBadge').classList.toggle('hidden', !state.isPremium);
-
-    el('pageContent').classList.toggle('hidden', state.phase === 'ad');
-    el('adBreak').classList.toggle('hidden', state.phase !== 'ad');
-
-    el('camEmpty').classList.toggle('hidden', !!state.capturedImageDataUrl || state.phase === 'loading');
-    el('camLoading').classList.toggle('hidden', state.phase !== 'loading');
-    el('camBox').style.backgroundImage = state.capturedImageDataUrl ? `url(${state.capturedImageDataUrl})` : 'none';
-
-    el('snapUploadRow').classList.toggle('hidden', !(state.phase === 'idle' || state.phase === 'error'));
-    el('errorBox').classList.toggle('hidden', state.phase !== 'error');
-
-    el('resetButton').classList.toggle('hidden', state.phase !== 'answered');
-
-    if (state.phase === 'answered' && state.result) {
-      el('answerEmpty').classList.add('hidden');
-      el('answerContent').classList.remove('hidden');
-      renderAnswer(state.result);
-    } else {
-      el('answerContent').classList.add('hidden');
-      el('answerEmpty').classList.remove('hidden');
-      el('answerEmpty').textContent = state.phase === 'loading' ? 'Working it out...' : 'Your answer will show here once you snap a question.';
-    }
-  }
-
-  function renderAnswer(result) {
-    const isMath = result.subject_type === 'math';
-    const isUnclear = result.subject_type === 'unclear';
-    let html = '';
-    if (isUnclear) {
-      html += `<div class="unclear-tip">📷 ${escapeHtml(result.answer || "Couldn't read that clearly.")}</div>`;
-      el('answerContent').innerHTML = html;
-      return;
-    }
-    if (result.question_summary) {
-      html += `<div class="question-summary">&ldquo;${escapeHtml(result.question_summary)}&rdquo;</div>`;
-    }
-    if (isMath && Array.isArray(result.steps) && result.steps.length > 0) {
-      html += '<ol class="steps-list">' + result.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('') + '</ol>';
-    }
-    html += `<div><span class="final-answer">✓ ${escapeHtml(result.answer || '')}</span></div>`;
-    el('answerContent').innerHTML = html;
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function openCamera() { el('fileInput').click(); }
-  function openUpload() { el('fileInputUpload').click(); }
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = () => reject(new Error('Could not read image'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function handleFile(file) {
-    state.phase = 'loading';
-    render();
-
-    const previewReader = new FileReader();
-    previewReader.onload = () => { state.capturedImageDataUrl = previewReader.result; render(); };
-    previewReader.readAsDataURL(file);
-
+  function loadSavedAnswers() {
     try {
-      const base64Data = await fileToBase64(file);
-      const mediaType = file.type || 'image/jpeg';
-
-      const res = await fetch('/api/solve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data, mediaType }),
-      });
-      if (!res.ok) throw new Error('Request failed');
-      const parsed = await res.json();
-      if (parsed.error) throw new Error(parsed.error);
-
-      state.result = parsed;
-      state.questionCount += 1;
-      state.phase = 'answered';
-    } catch (err) {
-      el('errorBox').textContent = "Couldn't read that one. Try snapping the question again, clearer if you can.";
-      state.phase = 'error';
-    }
-    render();
+      const raw = localStorage.getItem(SAVED_ANSWERS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
   }
 
-  function handleReset() {
-    const willShowAd = !state.isPremium && shouldShowAd(state.questionCount);
-    state.capturedImageDataUrl = null;
-    state.capturedBase64 = null;
-    state.result = null;
-    if (willShowAd) {
-      startAdBreak();
+  function persistSavedAnswers() {
+    try { localStorage.setItem(SAVED_ANSWERS_KEY, JSON.stringify(state.savedAnswers)); } catch (e) { /* storage full or unavailable */ }
+  }
+
+  function pruneSavedAnswers() {
+    const now = Date.now();
+    if (state.isPremium) {
+      state.savedAnswers = state.savedAnswers.filter((a) => (now - a.timestamp) < PRO_RETENTION_MS);
+      if (state.savedAnswers.length > PRO_MAX_SAVED) state.savedAnswers = state.savedAnswers.slice(0, PRO_MAX_SAVED);
     } else {
-      state.phase = 'idle';
-      render();
+      const currentCycle = getCycleKey(now);
+      const storedCycle = localStorage.getItem(FREE_CYCLE_KEY);
+      if (storedCycle !== currentCycle) {
+        state.savedAnswers = [];
+        localStorage.setItem(FREE_CYCLE_KEY, currentCycle);
+      }
+      if (state.savedAnswers.length > FREE_MAX_SAVED) state.savedAnswers = state.savedAnswers.slice(0, FREE_MAX_SAVED);
     }
+    persistSavedAnswers();
   }
 
-  function startAdBreak() {
-    state.phase = 'ad';
-    render();
-    let seconds = 4;
-    const btn = el('continueButton');
-    btn.textContent = `Continue in ${seconds}s`;
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    const interval = setInterval(() => {
-      seconds -= 1;
-      if (seconds <= 0) {
-        clearInterval(interval);
-        btn.textContent = 'Continue';
-        b
+  function addSavedAnswer(result, thumbnail) {
+    const entry = {
+      id: 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      timestamp: Date.now(),
+      subject_type: result.subject_type,
+      question_summary: result.question_summary || '',
+      steps: Array.isArray(result.steps) ? result.steps : [],
+      answer: result.answer || '',
+      thumbnail: thumbnail || null,
+    };
+    state.savedAnswers.unshift
