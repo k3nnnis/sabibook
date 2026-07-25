@@ -5,7 +5,7 @@ Everything here can be done from your phone's browser. No laptop, no command lin
 ## What's in this project
 - `index.html` — the whole app (camera capture, answer display, ad break, premium modal). No build step.
 - `api/solve.js` — calls Claude to solve the captured question. Keeps your Anthropic key private on the server.
-- `api/paystack/initialize.js` — starts a Paystack checkout for the ₦500/month plan.
+- `api/paystack/initialize.js` — starts a Paystack checkout for the ₦750/month Pro plan.
 - `api/paystack/callback.js` — runs after payment, verifies it with Paystack, marks the browser as premium.
 
 ## Step 1 — Put this project on GitHub
