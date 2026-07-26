@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { email } = req.body || {};
+    const { email, anon_id } = req.body || {};
     if (!email || !email.includes('@')) {
       res.status(400).json({ error: 'A valid email is required' });
       return;
@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
         email,
         amount: PREMIUM_AMOUNT_KOBO,
         callback_url: `${origin}/api/paystack/callback`,
+        metadata: { anon_id: anon_id || '' },
       }),
     });
 
@@ -44,4 +45,3 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Server error starting payment' });
   }
 };
-        
