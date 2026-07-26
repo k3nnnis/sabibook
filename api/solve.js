@@ -17,6 +17,59 @@ Respond with ONLY valid JSON, no markdown code fences, no extra commentary, in e
 
 If subject_type is "other" or "unclear", "steps" must be an empty array. Always return this exact JSON shape, never plain text, even when the image is unclear.`;
 
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const FREE_DAILY_QUESTION_LIMIT = 5;
+
+function lagosDateKey(date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+}
+
+async function supabaseFetch(path, options) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      ...(options && options.headers ? options.headers : {}),
+    },
+  });
+}
+
+async function getProStatus(anonId) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !anonId) return false;
+  try {
+    const r = await supabaseFetch(`subscriptions?anon_id=eq.${encodeURIComponent(anonId)}&select=status,expires_at`);
+    const rows = await r.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const s = rows[0];
+      return s.status === 'active' && s.expires_at && new Date(s.expires_at).getTime() > Date.now();
+    }
+  } catch (e) { /* fail open to free tier below */ }
+  return false;
+}
+
+async function getUsageCount(anonId, today) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !anonId) return 0;
+  try {
+    const r = await supabaseFetch(`usage_daily?anon_id=eq.${encodeURIComponent(anonId)}&usage_date=eq.${today}&select=question_count`);
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length > 0 ? rows[0].question_count : 0;
+  } catch (e) { return 0; }
+}
+
+async function incrementUsage(anonId, today, current) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !anonId) return;
+  try {
+    await supabaseFetch('usage_daily?on_conflict=anon_id,usage_date', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify({ anon_id: anonId, usage_date: today, question_count: current + 1 }),
+    });
+  } catch (e) { /* non-critical */ }
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -24,13 +77,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { imageBase64, mediaType } = req.body || {};
+    const { imageBase64, mediaType, anon_id } = req.body || {};
     if (!imageBase64) {
       res.status(400).json({ error: 'No image provided' });
       return;
     }
     if (!process.env.ANTHROPIC_API_KEY) {
       res.status(500).json({ error: 'Server is not configured with an API key yet' });
+      return;
+    }
+
+    const today = lagosDateKey(new Date());
+    const isPro = await getProStatus(anon_id);
+    const usedSoFar = await getUsageCount(anon_id, today);
+
+    if (!isPro && SUPABASE_URL && SUPABASE_SERVICE_KEY && usedSoFar >= FREE_DAILY_QUESTION_LIMIT) {
+      res.status(200).json({
+        limitReached: true,
+        dailyLimit: FREE_DAILY_QUESTION_LIMIT,
+        message: `You've used your ${FREE_DAILY_QUESTION_LIMIT} free questions for today. Come back tomorrow, or go Pro for higher daily access.`,
+      });
       return;
     }
 
@@ -77,9 +143,12 @@ module.exports = async (req, res) => {
       }
     }
 
+    if (anon_id) {
+      await incrementUsage(anon_id, today, usedSoFar);
+    }
+
     res.status(200).json(parsed);
   } catch (err) {
     res.status(500).json({ error: 'Could not solve this question' });
   }
 };
-    
