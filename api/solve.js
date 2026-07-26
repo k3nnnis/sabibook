@@ -4,13 +4,16 @@ The photo may show handwriting - possibly messy, slanted, cursive, in pencil or 
 
 Look at the image and:
 1. Work out what the actual question is, reading any handwriting as diligently as possible before concluding it's unreadable.
-2. Decide if it is a mathematics / quantitative problem (arithmetic, algebra, calculus, physics or chemistry calculation, accounting, etc.) or a non-quantitative subject (literature, biology theory, government, history, geography theory, English comprehension, etc).
-3. If it is quantitative: solve it and break the working into short, clear numbered steps a student can follow, then give the final answer.
-4. If it is non-quantitative: just give the correct, concise answer. No long workings - 1-2 sentences of explanation at most.
-5. Only if the image is genuinely too blurry, dark, or cut off to make out the question even after careful reading, use "subject_type": "unclear" instead, with "answer" set to a short, specific tip for what to fix (e.g. "The bottom line is cut off - try including the whole question" or "Too blurry to read - hold the camera steady and get closer").
+2. Identify the subject (e.g. "Mathematics", "Physics", "English Language", "Government") and, if reasonably clear, the specific topic (e.g. "Quadratic Equations", "Photosynthesis"). Leave topic as an empty string if it's not clearly identifiable - never guess wildly.
+3. Decide if it is a mathematics / quantitative problem (arithmetic, algebra, calculus, physics or chemistry calculation, accounting, etc.) or a non-quantitative subject (literature, biology theory, government, history, geography theory, English comprehension, etc).
+4. If it is quantitative: solve it and break the working into short, clear numbered steps a student can follow, then give the final answer.
+5. If it is non-quantitative: just give the correct, concise answer. No long workings - 1-2 sentences of explanation at most.
+6. Add a one-sentence "why_it_works" - the plain-language reason the method or answer is correct, written so a student builds real understanding, not just copies the answer. Leave it as an empty string only if it genuinely wouldn't add anything (e.g. a simple factual recall question).
+7. Add a short, practical "exam_tip" - one sentence a student could use in a real WAEC/NECO/JAMB exam related to this exact question or topic. Leave it as an empty string if nothing genuinely useful applies.
+8. Only if the image is genuinely too blurry, dark, or cut off to make out the question even after careful reading, use "subject_type": "unclear" instead, with "answer" set to a short, specific tip for what to fix (e.g. "The bottom line is cut off - try including the whole question" or "Too blurry to read - hold the camera steady and get closer"). Leave subject, topic, why_it_works, and exam_tip as empty strings in this case.
 
 Respond with ONLY valid JSON, no markdown code fences, no extra commentary, in exactly this shape:
-{"subject_type": "math" or "other" or "unclear", "question_summary": "short restatement of the question", "steps": ["step 1", "step 2"], "answer": "the final answer, or a tip if unclear"}
+{"subject_type": "math" or "other" or "unclear", "subject": "short subject name or empty string", "topic": "short topic name or empty string", "question_summary": "short restatement of the question", "steps": ["step 1", "step 2"], "answer": "the final answer, or a tip if unclear", "why_it_works": "one short sentence or empty string", "exam_tip": "one short sentence or empty string"}
 
 If subject_type is "other" or "unclear", "steps" must be an empty array. Always return this exact JSON shape, never plain text, even when the image is unclear.`;
 
@@ -79,3 +82,4 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Could not solve this question' });
   }
 };
+    
