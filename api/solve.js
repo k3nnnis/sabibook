@@ -6,7 +6,7 @@ Look at the image and:
 1. Work out what the actual question is, reading any handwriting as diligently as possible before concluding it's unreadable.
 2. Identify the subject (e.g. "Mathematics", "Physics", "English Language", "Government") and, if reasonably clear, the specific topic (e.g. "Quadratic Equations", "Photosynthesis"). Leave topic as an empty string if it's not clearly identifiable - never guess wildly.
 3. Decide if it is a mathematics / quantitative problem (arithmetic, algebra, calculus, physics or chemistry calculation, accounting, etc.) or a non-quantitative subject (literature, biology theory, government, history, geography theory, English comprehension, etc).
-4. If it is quantitative: solve it and break the working into short, clear numbered steps a student can follow, then give the final answer.
+4. If it is quantitative: solve it carefully and precisely, showing full working, and break it into short, clear numbered steps a student can follow, then give the final answer. Double-check arithmetic before finalizing.
 5. If it is non-quantitative: just give the correct, concise answer. No long workings - 1-2 sentences of explanation at most.
 6. Add a one-sentence "why_it_works" - the plain-language reason the method or answer is correct, written so a student builds real understanding, not just copies the answer. Leave it as an empty string only if it genuinely wouldn't add anything (e.g. a simple factual recall question).
 7. Add a short, practical "exam_tip" - one sentence a student could use in a real WAEC/NECO/JAMB exam related to this exact question or topic. Leave it as an empty string if nothing genuinely useful applies.
@@ -20,6 +20,7 @@ If subject_type is "other" or "unclear", "steps" must be an empty array. Always 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const FREE_DAILY_QUESTION_LIMIT = 5;
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
 function lagosDateKey(date) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -82,7 +83,7 @@ module.exports = async (req, res) => {
       res.status(400).json({ error: 'No image provided' });
       return;
     }
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       res.status(500).json({ error: 'Server is not configured with an API key yet' });
       return;
     }
@@ -100,27 +101,30 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 1000,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType || 'image/jpeg', data: imageBase64 } },
-              { type: 'text', text: PROMPT },
-            ],
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: PROMPT },
+                { inline_data: { mime_type: mediaType || 'image/jpeg', data: imageBase64 } },
+              ],
+            },
+          ],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: 3000,
           },
-        ],
-      }),
-    });
+        }),
+      }
+    );
 
     const data = await response.json();
 
@@ -129,7 +133,16 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const text = (data.content || []).map((b) => b.text || '').join('\n');
+    const candidate = data.candidates && data.candidates[0];
+    const text = candidate && candidate.content && candidate.content.parts
+      ? candidate.content.parts.map((p) => p.text || '').join('\n')
+      : '';
+
+    if (!text) {
+      res.status(502).json({ error: 'AI returned an empty response. Try again.' });
+      return;
+    }
+
     let clean = text.replace(/```json|```/g, '').trim();
     let parsed;
     try {

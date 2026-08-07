@@ -1,3 +1,5 @@
+const GEMINI_MODEL = 'gemini-3.6-flash';
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -6,7 +8,7 @@ module.exports = async (req, res) => {
 
   try {
     const { subject, topic, subject_type, question_summary } = req.body || {};
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       res.status(500).json({ error: 'Server is not configured with an API key yet' });
       return;
     }
@@ -26,19 +28,23 @@ Respond with ONLY valid JSON, no markdown code fences, no commentary, in exactly
 
 If subject_type is "other", "steps" must be an empty array.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 700,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: 1200,
+          },
+        }),
+      }
+    );
 
     const data = await response.json();
     if (!response.ok) {
@@ -46,7 +52,16 @@ If subject_type is "other", "steps" must be an empty array.`;
       return;
     }
 
-    const text = (data.content || []).map((b) => b.text || '').join('\n');
+    const candidate = data.candidates && data.candidates[0];
+    const text = candidate && candidate.content && candidate.content.parts
+      ? candidate.content.parts.map((p) => p.text || '').join('\n')
+      : '';
+
+    if (!text) {
+      res.status(502).json({ error: 'AI returned an empty response. Try again.' });
+      return;
+    }
+
     let clean = text.replace(/```json|```/g, '').trim();
     let parsed;
     try {
