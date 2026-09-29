@@ -106,35 +106,48 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': process.env.GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: PROMPT },
-                { inline_data: { mime_type: mediaType || 'image/jpeg', data: imageBase64 } },
-              ],
-            },
+    const geminiBody = JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: PROMPT },
+            { inline_data: { mime_type: mediaType || 'image/jpeg', data: imageBase64 } },
           ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            maxOutputTokens: 8000,
-          },
-        }),
-      }
-    );
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        maxOutputTokens: 8000,
+      },
+    });
 
-    const data = await response.json();
+    let response;
+    let data;
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': process.env.GEMINI_API_KEY,
+          },
+          body: geminiBody,
+        }
+      );
+      data = await response.json();
+      const isTransient = response.status === 503 || response.status === 429;
+      if (response.ok || !isTransient || attempt === maxAttempts) break;
+      await new Promise((r) => setTimeout(r, attempt * 800)); // brief backoff before retrying
+    }
 
     if (!response.ok) {
-      res.status(502).json({ error: (data && data.error && data.error.message) || 'AI request failed' });
+      const isTransient = response.status === 503 || response.status === 429;
+      const friendlyMessage = isTransient
+        ? "SABIBOOK is getting a lot of requests right now. Please wait a few seconds and try again."
+        : 'Could not reach the AI right now. Try again in a moment.';
+      res.status(502).json({ error: friendlyMessage });
       return;
     }
 
