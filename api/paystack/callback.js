@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
       try {
         recoveryCode = generateRecoveryCode();
         const codeHash = hashCode(recoveryCode);
-        await supabaseFetch('subscriptions?on_conflict=anon_id', {
+        const saveRes = await supabaseFetch('subscriptions?on_conflict=anon_id', {
           method: 'POST',
           headers: { Prefer: 'resolution=merge-duplicates' },
           body: JSON.stringify({
@@ -78,7 +78,13 @@ module.exports = async (req, res) => {
             expires_at: expiresAtIso,
           }),
         });
+        if (!saveRes.ok) {
+          const errBody = await saveRes.text();
+          console.error('CALLBACK_DB_SAVE_FAILED:', saveRes.status, errBody);
+          recoveryCode = null; // the save did not actually succeed, do not claim it did
+        }
       } catch (dbErr) {
+        console.error('CALLBACK_DB_ERROR:', dbErr && dbErr.message, dbErr && dbErr.stack);
         recoveryCode = null; // fall back to the client-side token below
       }
     }
@@ -92,6 +98,7 @@ module.exports = async (req, res) => {
     res.writeHead(302, { Location: `/?${params.toString()}` });
     res.end();
   } catch (err) {
+    console.error('CALLBACK_FATAL_ERROR:', err && err.message, err && err.stack);
     res.writeHead(302, { Location: '/?payment=error' });
     res.end();
   }
