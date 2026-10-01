@@ -51,7 +51,7 @@ async function getProStatus(anonId) {
       const s = rows[0];
       return s.status === 'active' && s.expires_at && new Date(s.expires_at).getTime() > Date.now();
     }
-  } catch (e) { /* fail open to free tier below */ }
+  } catch (e) { console.error('GET_PRO_STATUS_ERROR:', e && e.message); /* fail open to free tier below */ }
   return false;
 }
 
@@ -61,7 +61,7 @@ async function getUsageCount(anonId, today) {
     const r = await supabaseFetch(`usage_daily?anon_id=eq.${encodeURIComponent(anonId)}&usage_date=eq.${today}&select=question_count`);
     const rows = await r.json();
     return Array.isArray(rows) && rows.length > 0 ? rows[0].question_count : 0;
-  } catch (e) { return 0; }
+  } catch (e) { console.error('GET_USAGE_ERROR:', e && e.message); return 0; }
 }
 
 async function incrementUsage(anonId, today, current, byCount) {
@@ -72,7 +72,7 @@ async function incrementUsage(anonId, today, current, byCount) {
       headers: { Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify({ anon_id: anonId, usage_date: today, question_count: current + byCount }),
     });
-  } catch (e) { /* non-critical */ }
+  } catch (e) { console.error('INCREMENT_USAGE_ERROR:', e && e.message); /* non-critical */ }
 }
 
 module.exports = async (req, res) => {

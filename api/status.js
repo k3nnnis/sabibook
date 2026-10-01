@@ -31,6 +31,7 @@ module.exports = async (req, res) => {
       return;
     }
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      console.error('STATUS_MISSING_ENV:', { hasUrl: !!SUPABASE_URL, hasKey: !!SUPABASE_SERVICE_KEY });
       res.status(200).json({ isPro: false, expiresAt: null, questionsUsedToday: 0, dailyLimit: FREE_DAILY_QUESTION_LIMIT, backendReady: false });
       return;
     }
@@ -55,6 +56,7 @@ module.exports = async (req, res) => {
 
     res.status(200).json({ isPro, expiresAt, questionsUsedToday, dailyLimit: FREE_DAILY_QUESTION_LIMIT, backendReady: true });
   } catch (err) {
+    console.error('STATUS_ERROR:', err && err.message, err && err.stack);
     res.status(200).json({ isPro: false, expiresAt: null, questionsUsedToday: 0, dailyLimit: FREE_DAILY_QUESTION_LIMIT, backendReady: false });
   }
 };
